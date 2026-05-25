@@ -49,11 +49,16 @@ def init_db():
 
 
 # Inicializar la BD al arrancar
-init_db()
+    if estado:
+        cur.execute("SELECT * FROM reservas WHERE estado = ?", (estado, ))
+    else:
+        cur.execute("SELECT * FROM reservas")
 
-
-# ──────────────────────────────────────────────
-# BUG INTENCIONADO: el parámetro 'estado' se recibe
+    total_income = 0
+    for row in filas:
+        if row['estado'] != 'cancelada':
+            total_income += row['noches'] * 50  # Assuming 50 units per night
+    return {"reservas": filas, "ingresos_totales": total_income}
 # pero la consulta SQL NUNCA lo usa para filtrar.
 # Siempre devuelve SELECT * FROM reservas sin WHERE.
 # ──────────────────────────────────────────────
