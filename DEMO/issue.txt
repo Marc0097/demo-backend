@@ -1,0 +1,8 @@
+Al hacer una petición GET a /api/reservas?estado=activa, la API me devuelve la lista entera de reservas, incluyendo las canceladas. El filtro no funciona.
+
+El campo ingresos_totales en el JSON de respuesta está devolviendo una cantidad enorme de dinero. Haciendo cálculos a mano, he visto que está sumando el precio de TODAS las reservas de la base de datos, incluso de las reservas canceladas que no deberían formar parte de ese cálculo.
+
+Comportamiento esperado:
+Si paso un parámetro de estado, la API debe devolver únicamente las reservas que coincidan con ese estado exacto. Además, los ingresos totales deben corresponder única y exclusivamente a la suma matemática de los precios de las reservas filtradas que se devuelven en la respuesta. Encuentra el fallo en el código y arréglalo
+
+Corrige el código y, cuando termines, ejecuta en la terminal este comando: git push https://<GITHUB_TOKEN>@github.com/Marc0097/demo-backend.git
