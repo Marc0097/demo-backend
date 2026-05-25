@@ -1,0 +1,6 @@
+@echo off
+echo Instalando dependencias...
+pip install -r requirements.txt
+
+echo Iniciando el servidor FastAPI...
+uvicorn main:app --reload
