@@ -55,5 +55,41 @@ agent:
     ### View file content:
     [Makes bash tool call with {"command": "type filename.py"} as arguments]
 
-    ### Create or edit files using Python:
-    [Makes bash tool call with {"command": "python -c \"content = open('main.py', encoding='utf-8').read(); open('main.py', 'w', encoding='utf-8').write(content.replace('old', 'new'))\""} as arguments]
+    ### IMPORTANT - How to edit files on Windows:
+    NEVER use python -c to edit files. It always fails with quote escaping issues on Windows.
+    Instead, create a helper Python script called fix.py, then run it with: python fix.py
+
+    CRITICAL RULES FOR fix.py:
+    1. NEVER put if and else on the same line. That is a SyntaxError in Python.
+    2. Use \n in the replacement string to create new lines.
+    3. INDENTATION IS CRITICAL: When replacing a line that has leading spaces, you MUST include those leading spaces in BOTH the search string and the replacement string.
+    4. If the original line has 4 leading spaces, the if/else must also have 4 spaces, and the code INSIDE the if/else must have 8 spaces.
+
+    Example: If the original code is '    old_line()' (4 leading spaces), the correct replacement is:
+    '    if condition:\n        new_line_a()\n    else:\n        new_line_b()'
+    Notice: 4 spaces before if, 8 spaces before inner lines, 4 spaces before else.
+
+    Step 1 - Create fix.py using echo:
+    [Makes bash tool call with {"command": "echo content = open('file.py', encoding='utf-8').read() > fix.py && echo content = content.replace('    old_line()', '    if x:\n        line_a()\n    else:\n        line_b()') >> fix.py && echo open('file.py', 'w', encoding='utf-8').write(content) >> fix.py"} as arguments]
+
+    Step 2 - Run the helper script:
+    [Makes bash tool call with {"command": "python fix.py"} as arguments]
+
+    Step 3 - ALWAYS verify the result looks correct:
+    [Makes bash tool call with {"command": "type file.py"} as arguments]
+
+model:
+  model_kwargs:
+    drop_params: true
+  format_error_template: |
+    Tool call error:
+
+    <error>
+    {{error}}
+    </error>
+
+    REMEMBER: You MUST use the `bash` tool to execute your commands. Do not just output markdown text.
+    You must always include at least one tool call.
+    Call the bash tool with your command as the argument:
+    - Tool: bash
+    - Arguments: {"command": "your_command_here"}

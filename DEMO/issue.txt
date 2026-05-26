@@ -1,13 +1,16 @@
-Al hacer una petición GET a /api/reservas?estado=activa, la API me devuelve la lista entera de reservas, incluyendo las canceladas. El filtro no funciona.
+Al hacer una peticion GET a /api/reservas?estado=activa, la API me devuelve la lista entera de reservas, incluyendo las canceladas. El filtro no funciona.
 
-El campo ingresos_totales en el JSON de respuesta está devolviendo una cantidad enorme de dinero. Haciendo cálculos a mano, he visto que está sumando el precio de TODAS las reservas de la base de datos, incluso de las reservas canceladas que no deberían formar parte de ese cálculo.
+El campo ingresos_totales esta sumando el precio de TODAS las reservas de la base de datos, incluso de las canceladas.
 
-Comportamiento esperado:
-Si paso un parámetro de estado, la API debe devolver únicamente las reservas que coincidan con ese estado exacto. Además, los ingresos totales deben corresponder única y exclusivamente a la suma matemática de los precios de las reservas filtradas que se devuelven en la respuesta. Encuentra el fallo en el código y arréglalo.
+Comportamiento esperado: Si paso un parametro de estado, la API debe devolver unicamente las reservas que coincidan con ese estado. Los ingresos totales deben ser la suma de las reservas filtradas solamente.
 
-Ayuda para editar: Puedes usar python para leer main.py, hacer un replace() del SELECT sin filtro por un if/else que aplique el filtro "WHERE estado = ?" si estado no es None, y luego volver a guardar main.py.
+INSTRUCCIONES OBLIGATORIAS PARA EDITAR:
+NO uses python -c para editar archivos. Siempre falla con las comillas en Windows.
+En su lugar, crea un archivo fix.py y luego ejecutalo con python fix.py.
 
-Corrige el código y, cuando termines, ejecuta en la terminal estos comandos para guardar los cambios y subirlos:
-git add .
+IMPORTANTE: En el fix.py, cuando hagas el replace, la cadena de reemplazo DEBE usar \\n para crear saltos de linea. NUNCA pongas if y else en la misma linea, eso da SyntaxError. Ejemplo correcto de reemplazo con saltos de linea: 'if estado:\\n        linea1\\n    else:\\n        linea2'
+
+Despues de ejecutar fix.py y verificar con type main.py que el codigo tiene buena pinta, ejecuta estos comandos:
+git add main.py
 git commit -m fix_bug_reservas_y_totales
 git push origin main
