@@ -1,27 +1,21 @@
 agent:
   system_template: |
-    You are a helpful assistant that can interact with a computer running Windows.
+    You are a helpful assistant that can interact with a Windows computer.
   instance_template: |
     Please solve this issue: {{task}}
 
-    You can execute commands and edit files to implement the necessary changes.
+    You can execute cmd/powershell commands and edit files to implement the necessary changes.
 
     ## Recommended Workflow
 
-    This workflow should be done step-by-step so that you can iterate on your changes and any possible problems.
-
     1. Analyze the codebase by finding and reading relevant files
     2. Edit the source code to resolve the issue
-    3. Verify your fix works
-    4. Git add, commit and push your changes
-    5. Submit your changes and finish your work by issuing the following command: `echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT`.
+    3. Submit your changes and finish your work by issuing the following command: `echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT`.
        Do not combine it with any other command. <important>After this command, you cannot continue working on this task.</important>
 
     ## Command Execution Rules
 
-    You are operating in a **Windows CMD** environment. You MUST use Windows CMD commands, NOT bash/Linux commands.
-    NEVER use: cat, ls, sed, grep, awk, head, tail, touch, mkdir -p, echo with >>
-    ALWAYS use: type, dir, findstr, python
+    You are operating in an environment where
 
     1. You issue at least one command
     2. The system executes the command(s) in a subshell
@@ -35,95 +29,31 @@ agent:
 
     **CRITICAL REQUIREMENTS:**
 
-    - You are on **Windows CMD**. NEVER use bash commands.
+    - Your response SHOULD include reasoning text explaining what you're doing
     - Your response MUST include AT LEAST ONE bash tool call
-    - Directory or environment variable changes are not persistent
-    - Submit your changes by issuing: `echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT`
+    - You are running in Windows `cmd.exe`. DO NOT USE Linux commands like `ls`, `cat`, or `sed`.
+    - Directory or environment variable changes are not persistent. Every action is executed in a new subshell.
+    - Submit your changes and finish your work by issuing the following command: `echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT`.
+      Do not combine it with any other command.
+
+    Example of a CORRECT response:
+    <example_response>
+    I need to understand the structure of the repository first. Let me check what files are in the current directory to get a better understanding of the codebase.
+
+    [Makes bash tool call with {"command": "dir"} as arguments]
+    </example_response>
 
     <system_information>
     {{system}} {{release}} {{version}} {{machine}}
     </system_information>
 
-    ## IMPORTANT: How to edit files on Windows
+    ## Useful command examples for Windows
 
-    The BEST and ONLY reliable way to edit or create files is using Python.
-    Do NOT try to use PowerShell -replace or sed. They will fail with escaping issues.
+    ### List files:
+    [Makes bash tool call with {"command": "dir"} as arguments]
 
-    ### To read a file:
-    ```cmd
-    type main.py
-    ```
+    ### View file content:
+    [Makes bash tool call with {"command": "type filename.py"} as arguments]
 
-    ### To list files:
-    ```cmd
-    dir
-    ```
-
-    ### To create or OVERWRITE a file (use Python):
-    ```cmd
-    python -c "open('filename.py','w',encoding='utf-8').write('''import sqlite3\nprint('hello')\n''')"
-    ```
-
-    ### To write a multi-line file (use a helper script):
-    Write a small Python helper script first, then run it:
-    ```cmd
-    python -c "content = open('main.py','r',encoding='utf-8').read(); content = content.replace('old_text', 'new_text'); open('main.py','w',encoding='utf-8').write(content)"
-    ```
-
-    ### For complex edits, write a Python edit script:
-    ```cmd
-    python -c "lines = open('main.py','r',encoding='utf-8').readlines(); lines[5] = '    new_line_content\n'; open('main.py','w',encoding='utf-8').write(''.join(lines))"
-    ```
-
-    ### Git commands:
-    ```cmd
-    git add -A
-    git commit -m "fix: description"
-    git push https://url.git
-    ```
-  step_limit: 0
-  cost_limit: 3.
-  mode: confirm
-environment:
-  env:
-    PAGER: cat
-    MANPAGER: cat
-    LESS: -R
-    PIP_PROGRESS_BAR: 'off'
-    TQDM_DISABLE: '1'
-model:
-  observation_template: |
-    {%- if output.output | length < 10000 -%}
-    {
-      "returncode": {{ output.returncode }},
-      "output": {{ output.output | tojson }}
-      {%- if output.exception_info %}, "exception_info": {{ output.exception_info | tojson }}{% endif %}
-    }
-    {%- else -%}
-    {
-      "returncode": {{ output.returncode }},
-      "output_head": {{ output.output[:5000] | tojson }},
-      "output_tail": {{ output.output[-5000:] | tojson }},
-      "elided_chars": {{ output.output | length - 10000 }},
-      "warning": "Output too long."
-      {%- if output.exception_info %}, "exception_info": {{ output.exception_info | tojson }}{% endif %}
-    }
-    {%- endif -%}
-  format_error_template: |
-    Tool call error:
-
-    <error>
-    {{error}}
-    </error>
-
-    REMEMBER: You are on Windows CMD. Use Windows commands only.
-    To edit files, use Python: python -c "content = open('file.py','r').read(); content = content.replace('old','new'); open('file.py','w').write(content)"
-
-    Call the bash tool with your command as the argument:
-    - Tool: bash
-    - Arguments: {"command": "your_command_here"}
-
-    If you want to end the task, please issue the following command: `echo COMPLETE_TASK_AND_SUBMIT_FINAL_OUTPUT`
-    without any other command.
-  model_kwargs:
-    drop_params: true
+    ### Create or edit files using Python:
+    [Makes bash tool call with {"command": "python -c \"content = open('main.py', encoding='utf-8').read(); open('main.py', 'w', encoding='utf-8').write(content.replace('old', 'new'))\""} as arguments]

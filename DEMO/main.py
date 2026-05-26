@@ -47,30 +47,25 @@ def init_db():
     conn.commit()
     conn.close()
 
-
 # Inicializar la BD al arrancar
-    if estado:
-        cur.execute("SELECT * FROM reservas WHERE estado = ?", (estado, ))
-    else:
-        cur.execute("SELECT * FROM reservas")
+init_db()
 
-    total_income = 0
-    for row in filas:
-        if row['estado'] != 'cancelada':
-            total_income += row['noches'] * 50  # Assuming 50 units per night
-    return {"reservas": filas, "ingresos_totales": total_income}
-# pero la consulta SQL NUNCA lo usa para filtrar.
-# Siempre devuelve SELECT * FROM reservas sin WHERE.
-# ──────────────────────────────────────────────
-@app.get("/reservas")
+@app.get("/api/reservas")
 def listar_reservas(estado: Optional[str] = Query(None)):
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     cur = conn.cursor()
 
-    # La query ignora 'estado' completamente
+    # EL BUG DEL USUARIO: La query ignora 'estado' completamente
     cur.execute("SELECT * FROM reservas")
 
     filas = [dict(row) for row in cur.fetchall()]
     conn.close()
-    return filas
+
+    # EL BUG DEL USUARIO: ingresos_totales suma todas las reservas, incluyendo canceladas
+    ingresos_totales = sum(row['noches'] * 50 for row in filas)
+    
+    return {
+        "reservas": filas,
+        "ingresos_totales": ingresos_totales
+    }
