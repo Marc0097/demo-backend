@@ -57,13 +57,13 @@ def listar_reservas(estado: Optional[str] = Query(None)):
     cur = conn.cursor()
 
     # EL BUG DEL USUARIO: La query ignora 'estado' completamente
-    cur.execute("SELECT * FROM reservas")
+    cur.execute("SELECT * FROM reservas WHERE estado = ?", (estado,))
 
     filas = [dict(row) for row in cur.fetchall()]
     conn.close()
 
     # EL BUG DEL USUARIO: ingresos_totales suma todas las reservas, incluyendo canceladas
-    ingresos_totales = sum(row['noches'] * 50 for row in filas)
+    ingresos_totales = sum(row['noches'] * 50 for row in filas if row['estado'] == estado)
     
     return {
         "reservas": filas,
